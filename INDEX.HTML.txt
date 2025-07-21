@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BuscaFlex con Wikipedia</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      color: #0078d7;
+      text-align: center;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+    }
+    .buscador {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    input {
+      width: 100%;
+      max-width: 500px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    #resultados {
+      margin-top: 20px;
+      background-color: white;
+      padding: 15px;
+      border-radius: 5px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .item {
+      margin-bottom: 15px;
+    }
+    .item a {
+      color: #0078d7;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+    .item p {
+      margin: 5px 0;
+      font-size: 0.95em;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5em;
+      }
+      input, button {
+        font-size: 14px;
+      }
+      .item a {
+        font-size: 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>BuscaFlex 🧠 + Wikipedia</h1>
+  <div class="buscador">
+    <input type="text" id="entrada" placeholder="Buscar en Wikipedia..." />
+    <button id="buscar">🔍 Buscar</button>
+  </div>
+
+  <div id="resultados"></div>
+
+  <script>
+    const entrada = document.getElementById("entrada");
+    const boton = document.getElementById("buscar");
+    const resultados = document.getElementById("resultados");
+
+    boton.addEventListener("click", () => {
+      const consulta = entrada.value.trim();
+      resultados.innerHTML = "";
+
+      if (consulta === "") {
+        resultados.innerHTML = "<p>⚠️ Escribí algo para buscar.</p>";
+        return;
+      }
+
+      resultados.innerHTML = "<p>🔎 Buscando en Wikipedia...</p>";
+
+      const url = `https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(consulta)}&format=json&origin=*`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const resultadosBusqueda = data.query.search;
+          if (resultadosBusqueda.length === 0) {
+            resultados.innerHTML = "<p>❌ No se encontraron resultados.</p>";
+            return;
+          }
+
+          resultados.innerHTML = "<h2>Resultados desde Wikipedia:</h2>";
+          resultadosBusqueda.forEach(item => {
+            const enlace = `https://es.wikipedia.org/?curid=${item.pageid}`;
+            const div = document.createElement("div");
+            div.className = "item";
+            div.innerHTML = `
+              <a href="${enlace}" target="_blank">${item.title}</a>
+              <p>${item.snippet}...</p>
+            `;
+            resultados.appendChild(div);
+          });
+        })
+        .catch(error => {
+          console.error("Error al buscar:", error);
+          resultados.innerHTML = "<p>❌ Error al conectar con Wikipedia.</p>";
+        });
+    });
+  </script>
+</body>
+</html>
